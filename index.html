@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<link rel="preconnect" href="https://fonts.gstatic.com">
+		<link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@900&display=swap" rel="stylesheet">
+		<style> 
+			table { 
+				margin: 0 auto; 
+				font-size: 16px; 
+			}
+  
+			h1 { 
+				text-align: center; 
+				color: #2599a1; 
+				font-size: 28px; 
+				font-family: 'Source Sans Pro', sans-serif;
+			}
+  
+			th, td { 
+				font-weight: bold; 
+				border: 1px solid black; 
+				padding: 5px; 
+				text-align: center; 
+			}
+		  
+			td { 
+				font-weight: normal;
+				background-color: #d7f5f7;
+			}
+			
+			#high_capacity {
+				font-weight: bold;
+				color: red;
+			}
+
+		</style> 
+	</head>
+
+	<body>
+		<h1>Carpark Availability in Singapore</h1>
+		<table id="carparks"></table>
+		<script>
+			const display = data => {
+				let perRow =
+					`<tr>
+						<th>Carpark No.</th>
+						<th>Last Updated</th>
+						<th>Lot Type</th>
+						<th>Total Lots</th>
+						<th>Available Lots</th>
+						<th>Utilization</th>
+					</tr>`;
+				
+				const cp_data = data.items[0].carpark_data;
+				
+				for (let i = 0; i < cp_data.length; i++) {
+					if(cp_data[i].carpark_info[0].total_lots == 0) {
+						break;
+					}
+					
+					let util = Math.round((cp_data[i].carpark_info[0].total_lots - cp_data[i].carpark_info[0].lots_available)/cp_data[i].carpark_info[0].total_lots * 100 * 10) / 10;
+					let edited_datetime = cp_data[i].update_datetime.replace("T"," ");
+					
+					if(util <= 80) {
+						perRow +=
+							`<tr>
+								<td>${cp_data[i].carpark_number}</td>
+								<td>${edited_datetime}</td>
+								<td>${cp_data[i].carpark_info[0].lot_type}</td>
+								<td>${cp_data[i].carpark_info[0].total_lots}</td>
+								<td>${cp_data[i].carpark_info[0].lots_available}</td>
+								<td>${util}%</td>
+							</tr>`;
+					} else {
+						perRow +=
+							`<tr>
+								<td>${cp_data[i].carpark_number}</td>
+								<td>${edited_datetime}</td>
+								<td>${cp_data[i].carpark_info[0].lot_type}</td>
+								<td>${cp_data[i].carpark_info[0].total_lots}</td>
+								<td>${cp_data[i].carpark_info[0].lots_available}</td>
+								<td id="high_capacity">${util}%</td>
+							</tr>`;
+					}
+				}
+				
+				document.getElementById("carparks").innerHTML = perRow;
+			}
+
+			fetch('https://api.data.gov.sg/v1/transport/carpark-availability')
+				.then(response => response.json())
+				.then(data => display(data));
+				//.then(data => console.log(data.items[0].carpark_data[1].total_lots));
+				//.catch(err => console.log("ERROR: " + err);
+		</script>
+	</body>
+</html>
